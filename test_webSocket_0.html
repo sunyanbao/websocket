@@ -1,0 +1,180 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <style type="text/css">
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #test {
+      width: 1399px;
+      height: 772px;
+      background: url("./img/test_mark.png") center no-repeat;
+      background-size: 100% 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin: auto;
+      border: 1px solid red;
+    }
+
+    .submit {
+      margin-top: 10px;
+      width: 100px;
+    }
+
+    #msg {
+      position: absolute;
+      left: 5%;
+      bottom: 20%;
+    }
+
+    #btn {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      left: 5%;
+    }
+
+    input {
+      width: 100px;
+      height: 20px;
+    }
+
+    button {
+      width: 100px;
+    }
+
+    .semdStr {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .semdStr .sendmsg {
+      margin-top: 10px;
+    }
+	#close{
+	margin-top: 15px;
+	}
+  </style>
+  <title></title>
+  <script src="js/jquery-2.0.3.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      var ws;
+      $(".submit").click(function () {
+        changeSize()
+      })
+	   $("#close").click(function () {
+        close()
+      })
+    })
+
+ $(function () {
+      $(".sendmsg").click(function () {
+            sendStr()
+         })
+    })
+
+    function initWs() {
+      ws = new WebSocket("ws://127.0.0.1:6006");
+      if ("WebSocket" in window) {
+
+        ws.onopen = function () {
+          //ws.send("发送数据");
+          console.log("发送数据...");
+          sendMsg();
+          $(".sendmsg").click(function () {
+            sendStr()
+          })
+        };
+
+        ws.onmessage = function (e) {
+          var msg = e.data;
+          console.log("msg:", msg);
+        };
+
+        ws.onclose = function () {
+          console.log("close");
+        };
+      }
+    }
+
+    function sendMsg() {
+      var tx = document.getElementById("test").offsetLeft; // X方向坐标
+      var ty = document.getElementById("test").offsetTop; // Y方向坐标
+      var tw = document.getElementById("test").offsetWidth; //元素宽度
+      var th = document.getElementById("test").offsetHeight; // 元素高度
+      console.log(tx + "," + ty + "," + tw + "," + th)
+      var wx = window.screenX; // 浏览器窗口对于屏幕的X坐标
+      var wy = window.screenY; // 浏览器窗口对于屏幕的坐标Y
+      var y = window.outerHeight - window.innerHeight;
+	  var x = window.outerWidth - window.innerWidth;
+      //tx = tx * 1 + wx * 1;
+     // ty = ty * 1 + wy * 1 + y;
+	  tx = tx+x+wx;
+      ty = ty +y+wy;
+	  var wndid=0;
+      document.getElementById("msg").innerHTML = tx + "," + ty + "," + tw + "," + th;
+      setTimeout(function () {
+        ws.send(tx + "," + ty + "," + tw + "," + th + "," + wndid);
+        sendMsg();
+      }, 50)
+    }
+
+    function changeSize() {
+      var width = $("#inW").val() // 获取输入的宽
+      var height = $("#inH").val() // 获取输入的高
+      $("#test").css({
+        "width": width,
+        "height": height
+      })
+    }
+
+     function sendStr() {
+      var str = $("#str").val()
+      ws.send("type,"+str+",0");
+    }
+	function close() {
+      var str = "close";
+      ws.send(str);
+    }
+  </script>
+
+</head>
+
+<body onload="initWs()">
+<video id="test" width="720" height="240" muted autoplay controls loop>
+   <source src="./video/高点.mp4" type="video/MP4">
+</video>
+
+  <div id="btn">
+    <div class="subW">
+      <input id="inW" type="text" placeholder="宽度" />
+    </div>
+    <div class="subH">
+      <input id="inH" type="text" placeholder="高度" />
+    </div>
+    <button class="submit">提交宽高</button>
+    <div class="semdStr">
+      <input id="str" type="text" />
+      <button class="sendmsg">发送</button>
+    </div>
+	<button id="close">关闭</button>
+
+  </div>
+  <div id="msg" style="color: red"></div>
+
+
+</body>
+
+</html>
